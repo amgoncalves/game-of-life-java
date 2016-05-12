@@ -49,63 +49,81 @@ public class GameOfLife {
   
   public static void main(String[] args) {
     
-    int rows = 3;
-    int columns = 3;
+    int rows = 50;
+    int columns = 50;
+    int generations = 106;
     boolean[][] population = new boolean[rows][columns];
     boolean[][] nextPopulation = new boolean[rows][columns];
-    seed(population);
     
-    for (int i = 0; i < 3; i++) {
-      System.out.println("-----------------------------------------------------");
-      System.out.println("Starting Population:");
-      printMatrix(population);
-      for (int row = 0; row < population.length; row++) {
-        for (int col = 0; col < population.length; col++) {
+    seed(population, "block-glider");
+    
+    System.out.println("Starting Population:");
+    printMatrix(population);
+    
+    for (int i = 0; i < generations; i++) {
+      for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
           nextPopulation[row][col] = checkNeighbors(getNeighborhood(population, row, col));
         }
       }
-      System.out.println("New Population:");
-      printMatrix(nextPopulation);
-      population = nextPopulation;
+      //System.out.println("-----------------------------------------");
+      //printMatrix(nextPopulation);
+      copyMatrix(population, nextPopulation);
     }
+    System.out.println("Final Population: " + generations + " generations");
+    printMatrix(nextPopulation);
   }
+
+
+
+// Methuselah - a pattern that takes a large numer of generations in order to stabilize
   
   /**
   * Seeds a given population with initial values.  True = alive, False = dead
   *
   * @param  population a two-dimensional boolean array 
   */
-  private static void seed(boolean[][] population) {
-    population[0][0] = true;
-    population[0][1] = true;
-    population[0][2] = true;
-    population[1][0] = true;
-    population[1][1] = true;
-    population[1][2] = true;
-    population[2][0] = true;
-    population[2][1] = true;
-    population[2][2] = true;
-  }
-
-  /**
-  * Initializes a dead population
-  *
-  * @param  population a two-dimensional boolean array  
-  */
-  public static void wasteland(boolean[][] population) {
-    for (int i = 0; i < population.length; i++) {
-      for (int j = 0; j < population.length; j++) {
-        population[i][j] = false;
-      }
+  private static void seed(boolean[][] population, String seed) {
+    int row = (population.length - 1) / 2;
+    int col = (population[row].length - 1) / 2;
+    //System.out.print("Initialize: " + seed);
+    switch (seed) {
+      case "r-pentomino":  Seeds.initRPentomino(population, row, col);
+                           break;
+      case "b-heptomino":  Seeds.initBHeptomino(population, row, col);
+                           break;
+      case "pi-heptomino": Seeds.initPiPentomino(population, row, col);
+                           break; 
+      case "acorn":        Seeds.initAcorn(population, row, col);
+                           break;
+      case "glider":       Seeds.initGlider(population, row, col);
+                           break;
+      case "block-glider": Seeds.initBlockGlider(population, row, col);
+                           break;
+      default:             Seeds.wasteland(population);
+                           break;
     }
   }
   
   /**
-   * prints a 2-dimensional boolean array of any dimension to standard output
-   *
-   * @param  m a 2-dimensional boolean array
-   */
-   public static void printMatrix(boolean[][] m) {
+  * Initializes a 2-dimensional boolean array of any dimension with the values
+  * of an identically sized 2D boolean array 
+  *
+  * @param  old a 2-dimensional boolean array to be written
+  * @param  copy a 2-dimension boolean array to copy
+  */
+  private static void copyMatrix(boolean[][] old, boolean[][] copy) {
+    for (int i = 0; i < old.length; i++)
+    for (int j = 0; j < old[i].length; j++)
+    old[i][j] = copy[i][j];
+  }
+  
+  /**
+  * prints a 2-dimensional boolean array of any dimension to standard output
+  *
+  * @param  m a 2-dimensional boolean array
+  */
+  public static void printMatrix(boolean[][] m) {
      for(int i = 0; i < m.length; i++) {
        for (int j = 0; j < m[i].length; j++) {
          System.out.printf("%d ", (m[i][j] ? 1 : 0));
@@ -135,18 +153,18 @@ public class GameOfLife {
         }
       }
     }
-    boolean verdict = neighborhood[1][1];
-    if (neighborhood[1][1] == true && count < 2) // dies from underpopulation
-      verdict = false;
-    else if (neighborhood[1][1] == true && (count == 2 || count == 3)) // lives on to the next generation
-      verdict = true;
-    else if (neighborhood[1][1] == true && count > 3) // dies from overpopulation
-      verdict = false;
-    else if (neighborhood[1][1] == false && count == 3) // reproduction
-      verdict = true;
-    //String verdictS = verdict ? " Lives" : " Dies";
-    //System.out.println("Count: " + count + verdictS);
-    return verdict;
+    //System.out.println("Count: " + count);
+    if (neighborhood[1][1] == true && count < 2) // loneliness: cell dies from underpopulation
+      return false;
+    else if (neighborhood[1][1] == true && (count == 2 || count == 3)) // stasis: live cell continues to live on to the next generation
+      return true;
+    else if (neighborhood[1][1] == true && count > 3) // overcrowding: live cell dies from overpopulation
+      return false;
+    else if (neighborhood[1][1] == false && count == 3) // reproduction: dead cell is populated with a live cell
+      return true;
+    else if (neighborhood[1][1] == false && (count <= 2 || count > 3)) // conditions where a dead cell stays dead
+      return false;
+    return neighborhood[1][1];
   }
   
   /**
@@ -169,7 +187,7 @@ public class GameOfLife {
       buildSWCorner(population, neighborhood, row, col);
     else if (row == 0)
       buildNorthEdge(population, neighborhood, row, col);
-    else if (col == (population[population.length - 1].length - 1))
+    else if (col == (population[row].length - 1))
       buildEastEdge(population, neighborhood, row, col);
     else if (row == (population.length - 1))
       buildSouthEdge(population, neighborhood, row, col);
