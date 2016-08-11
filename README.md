@@ -6,5 +6,5 @@ An implementation of [John Conway's Game of Life](https://en.wikipedia.org/wiki/
 ![CLI program end](https://github.com/amgoncalves/game-of-life-java/blob/master/images/cli_pi_pent_evolution.png)
 
 ## Version 2: JavaFX Interface
-![JavaFX program start](https://github.com/amgoncalves/game-of-life-java/blob/master/images/javaFX_pi_pent.png | width=400)
-![JavaFX program end](https://github.com/amgoncalves/game-of-life-java/blob/master/images/javaFX_pi_pent_evolution.png | width=400)
+<img src="https://github.com/amgoncalves/game-of-life-java/blob/master/images/javaFX_pi_pent.png" width="400">
+<img src="https://github.com/amgoncalves/game-of-life-java/blob/master/images/javaFX_pi_pent_evolution.png" width="400">
