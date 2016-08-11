@@ -1,0 +1,5 @@
+#!/bin/bash
+MAINCLASS=$1
+echo 'Class-Path: .' >Manifest.txt
+echo 'Main-Class: '$MAINCLASS >>Manifest.txt
+jar cfm $MAINCLASS.jar Manifest.txt *.class

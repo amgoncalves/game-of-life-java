@@ -45,106 +45,163 @@
   three living neighbors.
 */
 
-import java.util.Scanner;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.geometry.Pos;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.util.Duration;
+import javafx.scene.control.Button;
+import javafx.scene.text.Text;
 
-public class GameOfLife {
+public class GameOfLifeFX extends Application {
   
-  public static void main(String[] args) {
-    String[] seedNames = {"r-pentomino", "b-heptomino", "pi-heptomino", "acorn", "glider", "block-glider"}; // initialize seed names
-    
-    // list seed pattern choices for user
-    System.out.println("Available seed patterns:");
-    for (int i = 0; i < seedNames.length; i++)
-      System.out.printf("\t%d) %s\n", i, seedNames[i]);
-    
-    // get input from user
-    Scanner sc = new Scanner(System.in);
-    System.out.println("Enter desired seed pattern: ");
-    int num = sc.nextInt();  
-    System.out.println("Enter number of generations: ");
-    int numOfSteps = sc.nextInt();
-    System.out.println("Show each generation? y/n: ");
-    char showGenerations = sc.next().charAt(0);
-    sc.close();
-    
-    // initialize population size and seed origin position
-    int rowSize = 0; // number of rows in the population matrix
-    int colSize = 0; // number of columns in the population matrix
-    int seedRowPos = 0; // the row value of seed's origin position
-    int seedColPos = 0; // the column value of seed's origin position
-    
-    switch (seedNames[num]) {
-      // initializes an r-pentomino shaped seed at cell position row = 10, col = 10
-      case "r-pentomino":  rowSize = 20;
-                           colSize = 20;
-                           seedRowPos = rowSize/2;
-                           seedColPos = rowSize/2;
-                           break;
-      // initializes an r-pentomino shaped seed at cell position row = 10, col = 10
-      case "b-heptomino":  rowSize = 20;
-                           colSize = 20; 
-                           seedRowPos = rowSize/2;
-                           seedColPos = rowSize/2;
-                           break;
-                           
-      case "pi-heptomino": rowSize = 20;
-                           colSize = 20;
-                           seedRowPos = rowSize/2;
-                           seedColPos = rowSize/2;
-                           break; 
-                           
-      case "acorn":        rowSize = 50;
-                           colSize = 70;
-                           seedRowPos = rowSize/2;
-                           seedColPos = colSize - 14;  
-                           break;
-                           
-      case "glider":       rowSize = 20;
-                           colSize = 20;
-                           seedRowPos = 4;
-                           seedColPos = 4;
-                           break;
-                           
-      case "block-glider": rowSize = 50;
-                           colSize = 50;
-                           seedRowPos = rowSize/3;
-                           seedColPos = colSize/2;
-                           break;
-      default:             break; // initialize a 0x0 matrix, no seed
-    }
-  
-    boolean[][] currentGen = new boolean[rowSize][colSize];
-    boolean[][] nextGen = new boolean[rowSize][colSize];
+  private static int rowSize = 50;
+  private static int colSize = 50;
+  private static int cellSize = 10;
 
-    seed(currentGen, seedNames[num], seedRowPos, seedColPos);
-    run(currentGen, nextGen, numOfSteps, showGenerations);
+  @Override
+  public void start(Stage primaryStage) {
+    boolean[][] population = new boolean[rowSize][colSize];
+    boolean[][] nextPopulation = new boolean[rowSize][colSize];
+
+    int seedRow = rowSize / 2;
+    int seedCol = colSize / 2;
+    int step = 0;
+    
+    Button btStop = new Button("Stop");
+    Button btStart = new Button("Start");
+    Button btClear = new Button("Clear");
+    
+    Button btAcorn = new Button("Acorn");
+    Button btRPent = new Button("R-Pentomino");
+    Button btBHept = new Button("B-Heptomino");
+    Button btPiPent = new Button("Pi-Pentomino");
+    Button btGlider = new Button("Glider");
+    Button btBlockGlider = new Button("Block-Glider");
+    
+    Pane board = new Pane();
+    drawBoard(board, population);
+      
+    EventHandler<ActionEvent> generateEvent = e -> {
+      generate(population, nextPopulation);    
+      drawBoard(board, population);
+    };
+    
+    Timeline tick = new Timeline(
+      new KeyFrame(Duration.millis(500), generateEvent));
+    tick.setCycleCount(Timeline.INDEFINITE);
+    
+    btStop.setOnAction((ActionEvent e) -> tick.stop());
+    btStart.setOnAction((ActionEvent e) -> tick.play());
+    
+    btClear.setOnAction((ActionEvent e) -> {
+      seed(population, "wasteland", seedRow, seedCol);
+      drawBoard(board, population);
+    });
+    
+    btAcorn.setOnAction((ActionEvent e) -> {
+      seed(population, "wasteland", seedRow, seedCol);
+      seed(population, "acorn", seedRow, seedCol);
+      drawBoard(board, population);
+    });
+    
+    btRPent.setOnAction((ActionEvent e) -> {
+      seed(population, "wasteland", seedRow, seedCol);
+      seed(population, "r-pentomino", seedRow, seedCol);
+      drawBoard(board, population);
+    });
+    
+    btBHept.setOnAction((ActionEvent e) -> {
+      seed(population, "wasteland", seedRow, seedCol);
+      seed(population, "b-heptomino", seedRow, seedCol);
+      drawBoard(board, population);
+    });
+    
+    btPiPent.setOnAction((ActionEvent e) -> {
+      seed(population, "wasteland", seedRow, seedCol);
+      seed(population, "pi-heptomino", seedRow, seedCol);
+      drawBoard(board, population);
+    });
+    
+    btGlider.setOnAction((ActionEvent e) -> {
+      seed(population, "wasteland", seedRow, seedCol);
+      seed(population, "glider", seedRow, seedCol);
+      drawBoard(board, population);
+    });
+    
+    btBlockGlider.setOnAction((ActionEvent e) -> {
+      seed(population, "wasteland", seedRow, seedCol);
+      seed(population, "block-glider", seedRow, seedCol);
+      drawBoard(board, population);
+    });
+    
+    // Place controls into panes:
+    HBox seedControls1 = new HBox();
+    seedControls1.setSpacing(10);
+    seedControls1.setAlignment(Pos.CENTER);
+    seedControls1.getChildren().addAll(btAcorn, btRPent, btBHept); 
+    
+    HBox seedControls2 = new HBox();
+    seedControls2.setSpacing(10);
+    seedControls2.setAlignment(Pos.CENTER);
+    seedControls2.getChildren().addAll(btPiPent, btGlider, btBlockGlider);
+    
+    HBox mainControls = new HBox();
+    mainControls.setSpacing(10);
+    mainControls.setAlignment(Pos.CENTER);
+    mainControls.getChildren().addAll(btStop, btStart, btClear);
+    
+    VBox main = new VBox();
+    main.setSpacing(10);
+    main.setAlignment(Pos.CENTER);
+    main.getChildren().addAll(board, seedControls1, seedControls2, mainControls);    
+    
+    int sceneHeight = (rowSize * cellSize) + 120;
+    int sceneWidth = colSize * cellSize;
+    
+    Scene scene = new Scene(main, sceneWidth, sceneHeight);
+    primaryStage.setTitle("Conway's Game of Life");
+    primaryStage.setScene(scene);
+    primaryStage.setResizable(false);
+    primaryStage.show();
   }
-  
+   
   /**
-  * 
-  * @param  currentGen two-dimensional boolean array that holds the state of 
-  *                    the current population
-  * @param  nextGen two-dimensional boolean array to be initialized with the 
-  *                 state of the population in currentGen after the Game of Life
-  *                 rules are applied
-  * @param  numOfSteps integer value of the number of generations to iterate
-  * @param  showGenerations print every generation if value is 'y', otherwise
-  *                         print only initial and final population
+  * Launches JavaFX application
   */
-  public static void run(boolean[][] currentGen, boolean[][] nextGen, int numOfSteps, char showGenerations) {
-    System.out.println("Starting Population:\n");
-    printMatrix(currentGen);
-    for (int i = 0; i < numOfSteps; i++) {
-        generate(currentGen, nextGen);
-        if (showGenerations == 'y') {
-          System.out.println("Generation " + i + ":");
-          printMatrix(currentGen);
-        }
-    }
-    System.out.println("\nFinal Population: " + numOfSteps + " generations\n");
-    printMatrix(nextGen);
+  public static void main(String[] args) {
+     launch(args);
   }
-  
+   
+  /**
+  * Draws the game of life board by converting the two-dimensional boolean array
+  * into a two-dimensional grid of black (living) and white (dead) square rectangles
+  *
+  * @param  board the pane to display the graphical representation of a two-dimensional boolean array
+  * @param  population a two-dimensional boolean array
+  */
+  public static void drawBoard(Pane board, boolean[][] population) {
+    for (int i = 0; i < rowSize; i++) {
+     for (int j = 0; j < colSize; j++) {
+      Rectangle rec = new Rectangle(cellSize * j, cellSize * i, cellSize, cellSize);
+      if (population[i][j])
+       rec.setFill(Color.BLACK);
+      else
+       rec.setFill(Color.WHITE);
+      board.getChildren().add(rec);
+     }
+    }
+  }
+   
   /**
   * Applies the Game of Life rules to each element in the current population 
   * matrix and places the results in the corresponding element in the next 
@@ -166,7 +223,7 @@ public class GameOfLife {
   }
 
   /**
-  * Seeds a given population with initial values.  True = alive, False = dead
+  * Seeds a given population with initial values. True = alive, False = dead
   *
   * @param  population a two-dimensional boolean array 
   */
@@ -185,6 +242,8 @@ public class GameOfLife {
                            break;
       case "block-glider": Seeds.initBlockGlider(population, row, col);
                            break;
+      case "wasteland":    Seeds.wasteland(population);
+                           break;
       default:             Seeds.wasteland(population);
                            break;
     }
@@ -202,30 +261,7 @@ public class GameOfLife {
     for (int j = 0; j < old[i].length; j++)
     old[i][j] = copy[i][j];
   }
-  
-  /**
-  * prints a 2-dimensional boolean array of any dimension to standard output
-  *
-  * @param  m a 2-dimensional boolean array
-  */
-  public static void printMatrix(boolean[][] m) {
-    for (int i = 0; i <= m[0].length; i++) {
-      System.out.print("--");
-    }
-    System.out.print("\n");
-     for(int i = 0; i < m.length; i++) {
-       System.out.print("|");
-       for (int j = 0; j < m[i].length; j++) {
-         System.out.printf("%s ", (m[i][j] ? "*" : " "));
-       }
-       System.out.print("|\n");
-    }
-    for (int i = 0; i <= m[0].length; i++) {
-      System.out.print("--");
-    }
-    System.out.print("\n");
-  }	
-  
+    
   /**
   * Iterates through each element in a 3x3 matrix, except the middle "cell" (1,1), and
   * tallies the number of living (true) cells found.
@@ -243,11 +279,9 @@ public class GameOfLife {
       for (int j = 0; j < neighborhood[i].length; j++) {
         if (!(i == 1 && j == 1) && neighborhood[i][j]) {
           count++;
-          //System.out.println("Match found on i=" + i + ", j=" + j);
         }
       }
     }
-    //System.out.println("Count: " + count);
     if (neighborhood[1][1] == true && count < 2) // loneliness: cell dies from underpopulation
       return false;
     else if (neighborhood[1][1] == true && (count == 2 || count == 3)) // stasis: live cell continues to live on to the next generation
@@ -256,7 +290,9 @@ public class GameOfLife {
       return false;
     else if (neighborhood[1][1] == false && count == 3) // reproduction: dead cell is populated with a live cell
       return true;
-    return neighborhood[1][1];
+    else if (neighborhood[1][1] == false && (count <= 2 || count > 3)) // conditions where a dead cell stays dead
+      return false;
+    return neighborhood[1][1]; // statement never reaches this point
   }
   
   /**
@@ -287,8 +323,6 @@ public class GameOfLife {
       buildWestEdge(population, neighborhood, row, col);
     else
       buildNeighborhood(population, neighborhood, row, col);
-    //System.out.println("The neighborhood for cell row = " + row + ", col = " + col + " is:");
-    //printMatrix(neighborhood);
     return neighborhood;  
 }
   
@@ -314,7 +348,7 @@ public class GameOfLife {
     n[0][1] = p[i - 1][j];
     n[0][2] = p[i - 1][j + 1];
     n[1][0] = p[i][j - 1];
-    n[1][1] = p[i][j]; // the cell!
+    n[1][1] = p[i][j];
     n[1][2] = p[i][j + 1];
     n[2][0] = p[i + 1][j - 1];
     n[2][1] = p[i + 1][j];
@@ -344,7 +378,7 @@ public class GameOfLife {
     n[0][1] = false;
     n[0][2] = false;
     n[1][0] = false;
-    n[1][1] = p[i][j]; // the cell!
+    n[1][1] = p[i][j];
     n[1][2] = p[i][j + 1];
     n[2][0] = false;
     n[2][1] = p[i + 1][j];
@@ -374,7 +408,7 @@ public class GameOfLife {
     n[0][1] = false;
     n[0][2] = false;
     n[1][0] = p[i][j - 1];
-    n[1][1] = p[i][j]; // the cell!
+    n[1][1] = p[i][j];
     n[1][2] = false;
     n[2][0] = p[i + 1][j - 1];
     n[2][1] = p[i + 1][j];
@@ -404,7 +438,7 @@ public class GameOfLife {
     n[0][1] = p[i - 1][j];
     n[0][2] = false;
     n[1][0] = p[i][j - 1];
-    n[1][1] = p[i][j]; // the cell!
+    n[1][1] = p[i][j];
     n[1][2] = false;
     n[2][0] = false;
     n[2][1] = false;
@@ -434,7 +468,7 @@ public class GameOfLife {
     n[0][1] = p[i - 1][j];
     n[0][2] = p[i - 1][j + 1];
     n[1][0] = false;
-    n[1][1] = p[i][j]; // the cell!
+    n[1][1] = p[i][j];
     n[1][2] = p[i][j + 1];
     n[2][0] = false;
     n[2][1] = false;
@@ -464,7 +498,7 @@ public class GameOfLife {
     n[0][1] = false;
     n[0][2] = false;
     n[1][0] = p[i][j - 1];
-    n[1][1] = p[i][j]; // the cell!
+    n[1][1] = p[i][j];
     n[1][2] = p[i][j + 1];
     n[2][0] = p[i + 1][j - 1];
     n[2][1] = p[i + 1][j];
@@ -494,7 +528,7 @@ public class GameOfLife {
     n[0][1] = p[i - 1][j];
     n[0][2] = false;
     n[1][0] = p[i][j - 1];
-    n[1][1] = p[i][j]; // the cell!
+    n[1][1] = p[i][j];
     n[1][2] = false;
     n[2][0] = p[i + 1][j - 1];
     n[2][1] = p[i + 1][j];
@@ -524,7 +558,7 @@ public class GameOfLife {
     n[0][1] = p[i - 1][j];
     n[0][2] = p[i - 1][j + 1];
     n[1][0] = p[i][j - 1];
-    n[1][1] = p[i][j]; // the cell!
+    n[1][1] = p[i][j];
     n[1][2] = p[i][j + 1];
     n[2][0] = false;
     n[2][1] = false;
@@ -554,7 +588,7 @@ public class GameOfLife {
     n[0][1] = p[i - 1][j];
     n[0][2] = p[i - 1][j + 1];
     n[1][0] = false;
-    n[1][1] = p[i][j]; // the cell!
+    n[1][1] = p[i][j];
     n[1][2] = p[i][j + 1];
     n[2][0] = false;
     n[2][1] = p[i + 1][j];
